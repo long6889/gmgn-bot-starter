@@ -6,6 +6,7 @@ Mục tiêu:
 - Cấu trúc dự án rõ ràng
 - Có client API template để gọi GMGN.ai
 - Có strategy skeleton để anh phát triển logic buying/selling
+- Có scanner + risk manager để anh học cách lọc token và quản lý rủi ro
 - Dễ mở rộng, dễ sửa theo API thực tế của GMGN
 
 ## Kiến trúc dự án
@@ -20,6 +21,8 @@ gmgn-bot-starter/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── client.py
+│   ├── scanner.py
+│   ├── risk.py
 │   ├── strategies.py
 │   └── main.py
 └── tests/
@@ -56,26 +59,49 @@ Lưu ý:
 python -m gmgn_bot.main
 ```
 
+## Mô tả từng file chính
+
+### `gmgn_bot/config.py`
+- Đọc biến môi trường
+- Tạo `settings` object dùng chung cho toàn dự án
+
+### `gmgn_bot/client.py`
+- Wrapper gọi API
+- Có các method mẫu: `ping()`, `get_market()`, `get_wallet_balance()`, `place_order()`
+- Anh sẽ cập nhật theo API thật của GMGN.ai
+
+### `gmgn_bot/scanner.py`
+- Filter token bằng volume / trend
+- Chọn token tốt nhất cho signal
+
+### `gmgn_bot/risk.py`
+- Giới hạn vị thế theo balance
+- Chặn trade nếu vượt mức rủi ro
+- Dùng cho việc kiểm soát drawdown / stop loss
+
+### `gmgn_bot/strategies.py`
+- Strategy mẫu với logic `buy / sell / hold`
+- Cần anh thay bằng logic thực tế dựa trên market data, RSI, volume, trend, hoặc whale activity
+
+### `gmgn_bot/main.py`
+- Điểm khởi chạy bot
+- Gồm scanner + risk check + strategy demo
+
 ## Học theo tiến độ
 
 1. Đọc `gmgn_bot/client.py` để hiểu cách gọi API
-2. Đọc `gmgn_bot/strategies.py` để hiểu logic signal
-3. Đọc `gmgn_bot/main.py` để biết cách chạy và test
-4. Sau đó anh mở rộng:
-   - lọc token
-   - tính signal
-   - risk management
-   - order execution
-   - logging
-   - backtest
+2. Đọc `gmgn_bot/scanner.py` để hiểu cách lọc token
+3. Đọc `gmgn_bot/risk.py` để hiểu cách kiểm soát rủi ro
+4. Đọc `gmgn_bot/strategies.py` để hiểu logic signal
+5. Đọc `gmgn_bot/main.py` để biết cách chạy và test
 
 ## Gợi ý phát triển tiếp
 
 - Thêm `wallet.py` để quản lý ví
-- Thêm `scanner.py` để quét token mới
-- Thêm `risk.py` để giới hạn vị thế
+- Thêm `monitor.py` để quét token mới theo thời gian thực
 - Thêm `backtest.py` để test lịch sử
 - Thêm `database.py` để lưu dữ liệu
+- Thêm `alerts.py` để gửi thông báo khi signal xuất hiện
 
 ## Lưu ý quan trọng
 
@@ -83,10 +109,4 @@ python -m gmgn_bot.main
 - Luôn test trên môi trường demo / sandbox / dry-run trước
 - Dùng logging đầy đủ để debug API và lệnh
 
-Mình sẽ hỗ trợ tiếp để anh phát triển bot từ starter này. Nếu cần, mình có thể viết tiếp:
-- module scanner token
-- module signal strategy
-- module order execution
-- module risk management
-- module backtest
-- hoặc tạo repo tiếp theo theo hướng GMGN.ai thực tế
+Mình sẽ hỗ trợ tiếp để anh phát triển bot từ starter này.
