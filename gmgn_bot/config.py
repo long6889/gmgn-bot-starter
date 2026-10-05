@@ -1,15 +1,16 @@
-from dataclasses import dataclass
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from pydantic_settings import BaseSettings
 
 
-@dataclass(frozen=True)
-class Settings:
-    base_url: str = os.getenv("GMGN_BASE_URL", "https://api.gmgn.ai")
-    api_key: str = os.getenv("GMGN_API_KEY", "")
-    timeout: int = int(os.getenv("GMGN_TIMEOUT", "30"))
+class Settings(BaseSettings):
+    """Configuration for GMGN Bot"""
+
+    base_url: str = "https://api.gmgn.ai"
+    api_key: str = "your_api_key_here"
+    timeout: int = 30
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
 
 
 settings = Settings()

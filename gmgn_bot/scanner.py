@@ -1,39 +1,28 @@
-from __future__ import annotations
-
-from typing import Dict, List, Optional
+"""Token Scanner - Filter and pick best tokens"""
+from typing import Any, Dict, List, Optional
 
 
 class TokenScanner:
-    """Simple scanner skeleton for GMGN-style token discovery.
+    """Scanner to filter tokens by volume and trend"""
 
-    In production, this component can call market APIs, websocket feeds,
-    or a list of newly launched tokens and then filter by volume, momentum,
-    liquidity, or wallet activity.
-    """
-
-    def __init__(self, min_volume: float = 500000.0):
+    def __init__(self, min_volume: float = 100000):
         self.min_volume = min_volume
 
-    def scan(self, markets: List[Dict]) -> List[Dict]:
-        candidates: List[Dict] = []
-        for market in markets:
-            if not isinstance(market, dict):
-                continue
-            symbol = market.get("symbol")
-            volume = float(market.get("volume", 0) or 0)
-            trend = market.get("trend", "neutral")
+    def filter_by_volume(self, markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Filter markets by minimum volume"""
+        return [m for m in markets if m.get("volume", 0) >= self.min_volume]
 
-            if symbol and volume >= self.min_volume:
-                candidates.append({
-                    "symbol": symbol,
-                    "volume": volume,
-                    "trend": trend,
-                    "price": market.get("price", 0),
-                })
-        return candidates
+    def filter_by_trend(self, markets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Filter markets by bullish trend"""
+        return [m for m in markets if m.get("trend") == "bullish"]
 
-    def pick_best(self, markets: List[Dict]) -> Optional[Dict]:
-        candidates = self.scan(markets)
-        if not candidates:
-            return None
-        return sorted(candidates, key=lambda x: x["volume"], reverse=True)[0]
+    def pick_best(
+        self, markets: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Pick the best candidate"""
+        filtered = self.filter_by_volume(markets)
+        filtered = self.filter_by_trend(filtered)
+        if filtered:
+            # Pick the one with highest volume
+            return max(filtered, key=lambda x: x.get("volume", 0))
+        return None
